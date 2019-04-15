@@ -1387,7 +1387,7 @@ __d(function (global, _$$_REQUIRE, _$$_IMPORT_DEFAULT, _$$_IMPORT_ALL, module, e
   _reactNative.AppRegistry.registerComponent(_app.name, function () {
     return _App.default;
   });
-},0,[1,2,416,423],"index.js");
+},0,[1,2,416,424],"index.js");
 __d(function (global, _$$_REQUIRE, _$$_IMPORT_DEFAULT, _$$_IMPORT_ALL, module, exports, _dependencyMap) {
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
@@ -87945,10 +87945,112 @@ __d(function (global, _$$_REQUIRE, _$$_IMPORT_DEFAULT, _$$_IMPORT_ALL, module, e
 
   var _jsxFileName = "C:\\work\\bl\\App.js";
 
-  var instructions = _reactNative.Platform.select({
-    ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
-    android: 'Double tap R on your keyboard to reload,\n' + 'Shake or press menu button for dev menu'
-  });
+  var Button = function Button(_ref) {
+    var title = _ref.title,
+        onPress = _ref.onPress,
+        style = _ref.style,
+        textStyle = _ref.textStyle;
+    return _react.default.createElement(_reactNative.TouchableOpacity, {
+      style: [styles.button, style],
+      onPress: onPress,
+      __source: {
+        fileName: _jsxFileName,
+        lineNumber: 115
+      }
+    }, _react.default.createElement(_reactNative.Text, {
+      style: [styles.buttonText, textStyle],
+      __source: {
+        fileName: _jsxFileName,
+        lineNumber: 116
+      }
+    }, title.toUpperCase()));
+  };
+
+  var DeviceList = function DeviceList(_ref2) {
+    var devices = _ref2.devices,
+        connectedId = _ref2.connectedId,
+        showConnectedIcon = _ref2.showConnectedIcon,
+        onDevicePress = _ref2.onDevicePress;
+    return _react.default.createElement(_reactNative.ScrollView, {
+      style: styles.container,
+      __source: {
+        fileName: _jsxFileName,
+        lineNumber: 121
+      }
+    }, _react.default.createElement(_reactNative.View, {
+      style: styles.listContainer,
+      __source: {
+        fileName: _jsxFileName,
+        lineNumber: 122
+      }
+    }, devices.map(function (device, i) {
+      return _react.default.createElement(_reactNative.TouchableHighlight, {
+        underlayColor: "#DDDDDD",
+        key: device.id + "_" + i,
+        style: styles.listItem,
+        onPress: function onPress() {
+          return onDevicePress(device);
+        },
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 125
+        }
+      }, _react.default.createElement(_reactNative.View, {
+        style: {
+          flexDirection: 'row'
+        },
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 129
+        }
+      }, showConnectedIcon ? _react.default.createElement(_reactNative.View, {
+        style: {
+          width: 48,
+          height: 48,
+          opacity: 0.4
+        },
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 132
+        }
+      }, connectedId === device.id ? _react.default.createElement(_reactNative.Image, {
+        style: {
+          resizeMode: 'contain',
+          width: 24,
+          height: 24,
+          flex: 1
+        },
+        source: _$$_REQUIRE(_dependencyMap[12], "./src/images/ic_done_black_24dp.png"),
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 135
+        }
+      }) : null) : null, _react.default.createElement(_reactNative.View, {
+        style: {
+          justifyContent: 'space-between',
+          flexDirection: 'row',
+          alignItems: 'center'
+        },
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 139
+        }
+      }, _react.default.createElement(_reactNative.Text, {
+        style: {
+          fontWeight: 'bold'
+        },
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 140
+        }
+      }, device.name), _react.default.createElement(_reactNative.Text, {
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 141
+        }
+      }, "<" + device.id + ">"))));
+    })));
+  };
 
   var App = function (_Component) {
     (0, _inherits2.default)(App, _Component);
@@ -87959,18 +88061,84 @@ __d(function (global, _$$_REQUIRE, _$$_IMPORT_DEFAULT, _$$_IMPORT_ALL, module, e
       (0, _classCallCheck2.default)(this, App);
       _this = (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(App).call(this, props));
       _this.state = {
-        isEnabled: false
+        isEnabled: false,
+        discovering: false,
+        devices: [],
+        unpairedDevices: [],
+        connected: false,
+        section: 0
       };
       return _this;
     }
 
     (0, _createClass2.default)(App, [{
-      key: "enable",
-      value: function enable() {
+      key: "componentWillMount",
+      value: function componentWillMount() {
         var _this2 = this;
 
         _reactNativeBluetoothSerial.default.enable().then(function (res) {
-          return _this2.setState({
+          _this2.setState({
+            isEnabled: true
+          });
+
+          return;
+        }).then(function (res) {
+          Promise.all([_reactNativeBluetoothSerial.default.isEnabled(), _reactNativeBluetoothSerial.default.list()]).then(function (values) {
+            var _values = (0, _slicedToArray2.default)(values, 2),
+                isEnabled = _values[0],
+                devices = _values[1];
+
+            _this2.setState({
+              isEnabled: isEnabled,
+              devices: devices
+            });
+          });
+
+          _reactNativeBluetoothSerial.default.on('bluetoothEnabled', function () {
+            return _reactNativeSimpleToast.default.show('Bluetooth enabled');
+          });
+
+          _reactNativeBluetoothSerial.default.on('bluetoothDisabled', function () {
+            return _reactNativeSimpleToast.default.show('Bluetooth disabled');
+          });
+
+          _reactNativeBluetoothSerial.default.on('error', function (err) {
+            return console.log("Error: " + err.message);
+          });
+
+          _reactNativeBluetoothSerial.default.on('connectionLost', function () {
+            if (_this2.state.device) {
+              _reactNativeSimpleToast.default.show("Connection to device " + _this2.state.device.name + " has been lost");
+            }
+
+            _this2.setState({
+              connected: false
+            });
+          });
+        }).catch(function (err) {
+          return _reactNativeSimpleToast.default.show(err.message);
+        });
+      }
+    }, {
+      key: "requestEnable",
+      value: function requestEnable() {
+        var _this3 = this;
+
+        _reactNativeBluetoothSerial.default.requestEnable().then(function (res) {
+          return _this3.setState({
+            isEnabled: true
+          });
+        }).catch(function (err) {
+          return _reactNativeSimpleToast.default.show(err.message);
+        });
+      }
+    }, {
+      key: "enable",
+      value: function enable() {
+        var _this4 = this;
+
+        _reactNativeBluetoothSerial.default.enable().then(function (res) {
+          return _this4.setState({
             isEnabled: true
           });
         }).catch(function (err) {
@@ -87980,10 +88148,10 @@ __d(function (global, _$$_REQUIRE, _$$_IMPORT_DEFAULT, _$$_IMPORT_ALL, module, e
     }, {
       key: "disable",
       value: function disable() {
-        var _this3 = this;
+        var _this5 = this;
 
         _reactNativeBluetoothSerial.default.disable().then(function (res) {
-          return _this3.setState({
+          return _this5.setState({
             isEnabled: false
           });
         }).catch(function (err) {
@@ -87991,103 +88159,385 @@ __d(function (global, _$$_REQUIRE, _$$_IMPORT_DEFAULT, _$$_IMPORT_ALL, module, e
         });
       }
     }, {
-      key: "componentWillMount",
-      value: function componentWillMount() {
-        var _this4 = this;
+      key: "toggleBluetooth",
+      value: function toggleBluetooth(value) {
+        if (value === true) {
+          this.enable();
+        } else {
+          this.disable();
+        }
+      }
+    }, {
+      key: "discoverUnpaired",
+      value: function discoverUnpaired() {
+        var _this6 = this;
 
-        _reactNativeBluetoothSerial.default.enable().then(function (res) {
-          return _this4.setState({
-            isEnabled: true
+        if (this.state.discovering) {
+          return false;
+        } else {
+          this.setState({
+            discovering: true
           });
-        }).then(function () {
-          return Promise.all([_reactNativeBluetoothSerial.default.isEnabled(), _reactNativeBluetoothSerial.default.list()]).then(function (values) {
-            var _values = (0, _slicedToArray2.default)(values, 2),
-                isEnabled = _values[0],
-                devices = _values[1];
 
-            _this4.setState({
-              isEnabled: isEnabled,
-              devices: devices
+          _reactNativeBluetoothSerial.default.discoverUnpairedDevices().then(function (unpairedDevices) {
+            _reactNativeSimpleToast.default.show("searched");
+
+            _this6.setState({
+              unpairedDevices: unpairedDevices,
+              discovering: false
             });
+          }).catch(function (err) {
+            return _reactNativeSimpleToast.default.show(err.message);
           });
-        });
+        }
+      }
+    }, {
+      key: "cancelDiscovery",
+      value: function cancelDiscovery() {
+        var _this7 = this;
 
-        _reactNativeBluetoothSerial.default.on('bluetoothEnabled', function () {
-          return _reactNativeSimpleToast.default.show('Bluetooth enabled');
-        });
+        if (this.state.discovering) {
+          _reactNativeBluetoothSerial.default.cancelDiscovery().then(function () {
+            _this7.setState({
+              discovering: false
+            });
+          }).catch(function (err) {
+            return _reactNativeSimpleToast.default.show(err.message);
+          });
+        }
+      }
+    }, {
+      key: "pairDevice",
+      value: function pairDevice(device) {
+        var _this8 = this;
 
-        _reactNativeBluetoothSerial.default.on('bluetoothDisabled', function () {
-          return _reactNativeSimpleToast.default.show('Bluetooth disabled');
-        });
+        _reactNativeBluetoothSerial.default.pairDevice(device.id).then(function (paired) {
+          if (paired) {
+            _reactNativeSimpleToast.default.show("Device " + device.name + " paired successfully");
 
-        _reactNativeBluetoothSerial.default.on('error', function (err) {
-          return console.log("Error: " + err.message);
-        });
+            var devices = _this8.state.devices;
+            devices.push(device);
 
-        _reactNativeBluetoothSerial.default.on('connectionLost', function () {
-          if (_this4.state.device) {
-            _reactNativeSimpleToast.default.show("Connection to device " + _this4.state.device.name + " has been lost");
+            _this8.setState({
+              devices: devices,
+              unpairedDevices: _this8.state.unpairedDevices.filter(function (d) {
+                return d.id !== device.id;
+              })
+            });
+          } else {
+            _reactNativeSimpleToast.default.show("Device " + device.name + " pairing failed");
           }
+        }).catch(function (err) {
+          return _reactNativeSimpleToast.default.show(err.message);
+        });
+      }
+    }, {
+      key: "connect",
+      value: function connect(device) {
+        var _this9 = this;
 
-          _this4.setState({
+        this.setState({
+          connecting: true
+        });
+
+        _reactNativeBluetoothSerial.default.connect(device.id).then(function (res) {
+          _reactNativeSimpleToast.default.show("Connected to device " + device.name);
+
+          _this9.setState({
+            device: device,
+            connected: true,
+            connecting: false
+          });
+        }).catch(function (err) {
+          return _reactNativeSimpleToast.default.show(err.message);
+        });
+      }
+    }, {
+      key: "disconnect",
+      value: function disconnect() {
+        var _this10 = this;
+
+        _reactNativeBluetoothSerial.default.disconnect().then(function () {
+          return _this10.setState({
             connected: false
           });
+        }).catch(function (err) {
+          return _reactNativeSimpleToast.default.show(err.message);
         });
+      }
+    }, {
+      key: "toggleConnect",
+      value: function toggleConnect(value) {
+        if (value === true && this.state.device) {
+          this.connect(this.state.device);
+        } else {
+          this.disconnect();
+        }
+      }
+    }, {
+      key: "write",
+      value: function write(message) {
+        var _this11 = this;
+
+        if (!this.state.connected) {
+          _reactNativeSimpleToast.default.show('You must connect to device first');
+        }
+
+        _reactNativeBluetoothSerial.default.write(message).then(function (res) {
+          _reactNativeSimpleToast.default.show('Successfuly wrote to device');
+
+          _this11.setState({
+            connected: true
+          });
+        }).catch(function (err) {
+          return _reactNativeSimpleToast.default.show(err.message);
+        });
+      }
+    }, {
+      key: "onDevicePress",
+      value: function onDevicePress(device) {
+        if (this.state.section === 0) {
+          this.connect(device);
+        } else {
+          this.pairDevice(device);
+        }
       }
     }, {
       key: "render",
       value: function render() {
+        var _this12 = this;
+
+        var activeTabStyle = {
+          borderBottomWidth: 6,
+          borderColor: '#009688'
+        };
         return _react.default.createElement(_reactNative.View, {
-          style: styles.container,
+          style: {
+            flex: 1
+          },
           __source: {
             fileName: _jsxFileName,
-            lineNumber: 75
+            lineNumber: 367
+          }
+        }, _reactNative.Platform.OS === 'android' ? _react.default.createElement(_reactNative.View, {
+          style: [styles.topBar, {
+            justifyContent: 'center',
+            paddingHorizontal: 0
+          }],
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 385
+          }
+        }, _react.default.createElement(_reactNative.TouchableOpacity, {
+          style: [styles.tab, this.state.section === 0 && activeTabStyle],
+          onPress: function onPress() {
+            return _this12.setState({
+              section: 0
+            });
+          },
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 386
           }
         }, _react.default.createElement(_reactNative.Text, {
-          style: styles.welcome,
+          style: {
+            fontSize: 14,
+            color: '#FFFFFF'
+          },
           __source: {
             fileName: _jsxFileName,
-            lineNumber: 76
+            lineNumber: 387
           }
-        }, "Welcome to React Native!"), _react.default.createElement(_reactNative.Text, {
-          style: styles.instructions,
+        }, "PAIRED DEVICES")), _react.default.createElement(_reactNative.TouchableOpacity, {
+          style: [styles.tab, this.state.section === 1 && activeTabStyle],
+          onPress: function onPress() {
+            return _this12.setState({
+              section: 1
+            });
+          },
           __source: {
             fileName: _jsxFileName,
-            lineNumber: 77
+            lineNumber: 389
           }
-        }, "To get started, edit App.js"), _react.default.createElement(_reactNative.Text, {
-          style: styles.instructions,
+        }, _react.default.createElement(_reactNative.Text, {
+          style: {
+            fontSize: 14,
+            color: '#FFFFFF'
+          },
           __source: {
             fileName: _jsxFileName,
-            lineNumber: 78
+            lineNumber: 390
           }
-        }, instructions));
+        }, "UNPAIRED DEVICES"))) : null, this.state.discovering && this.state.section === 1 ? _react.default.createElement(_reactNative.View, {
+          style: {
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center'
+          },
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 396
+          }
+        }, _react.default.createElement(_reactNative.ActivityIndicator, {
+          style: {
+            marginBottom: 15
+          },
+          size: 60,
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 397
+          }
+        }), _react.default.createElement(Button, {
+          textStyle: {
+            color: '#FFFFFF'
+          },
+          style: styles.buttonRaised,
+          title: "Cancel Discovery",
+          onPress: function onPress() {
+            return _this12.cancelDiscovery();
+          },
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 400
+          }
+        })) : _react.default.createElement(DeviceList, {
+          showConnectedIcon: this.state.section === 0,
+          connectedId: this.state.device && this.state.device.id,
+          devices: this.state.section === 0 ? this.state.devices : this.state.unpairedDevices,
+          onDevicePress: function onDevicePress(device) {
+            return _this12.onDevicePress(device);
+          },
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 407
+          }
+        }), _react.default.createElement(_reactNative.View, {
+          style: {
+            alignSelf: 'flex-end',
+            height: 52
+          },
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 415
+          }
+        }, _react.default.createElement(_reactNative.ScrollView, {
+          horizontal: true,
+          contentContainerStyle: styles.fixedFooter,
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 416
+          }
+        }, _reactNative.Platform.OS === 'android' && this.state.section === 1 ? _react.default.createElement(Button, {
+          title: this.state.discovering ? '... Discovering' : 'Discover devices',
+          onPress: this.discoverUnpaired.bind(this),
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 421
+          }
+        }) : null, _reactNative.Platform.OS === 'android' && !this.state.isEnabled ? _react.default.createElement(Button, {
+          title: "Request enable",
+          onPress: function onPress() {
+            return _this12.requestEnable();
+          },
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 427
+          }
+        }) : null)));
       }
     }]);
     return App;
   }(_react.Component);
 
-  exports.default = App;
-
   var styles = _reactNative.StyleSheet.create({
     container: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+      flex: 0.9,
       backgroundColor: '#F5FCFF'
     },
-    welcome: {
-      fontSize: 20,
-      textAlign: 'center',
-      margin: 10
+    topBar: {
+      height: 56,
+      paddingHorizontal: 16,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      elevation: 6,
+      backgroundColor: '#237bc1'
     },
-    instructions: {
-      textAlign: 'center',
-      color: '#333333',
-      marginBottom: 5
+    heading: {
+      fontWeight: 'bold',
+      fontSize: 16,
+      alignSelf: 'center',
+      color: '#FFFFFF'
+    },
+    enableInfoWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    },
+    tab: {
+      alignItems: 'center',
+      flex: 0.5,
+      height: 56,
+      justifyContent: 'center',
+      borderBottomWidth: 6,
+      borderColor: '#FFFFFF'
+    },
+    connectionInfoWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 25
+    },
+    connectionInfo: {
+      fontWeight: 'bold',
+      alignSelf: 'center',
+      fontSize: 18,
+      marginVertical: 10,
+      color: '#000'
+    },
+    listContainer: {
+      borderColor: '#ccc',
+      borderTopWidth: 0.5
+    },
+    listItem: {
+      flex: 1,
+      height: 48,
+      paddingHorizontal: 16,
+      borderColor: '#ccc',
+      borderBottomWidth: 0.5,
+      justifyContent: 'center'
+    },
+    fixedFooter: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderTopWidth: 1,
+      borderTopColor: '#83c0ee',
+      borderColor: '#62ade6',
+      color: '#000'
+    },
+    button: {
+      height: 36,
+      margin: 5,
+      paddingHorizontal: 16,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+      fontSize: 14
+    },
+    buttonRaised: {
+      backgroundColor: '#115387',
+      borderRadius: 2,
+      elevation: 2
     }
   });
-},416,[1,417,12,22,23,30,33,36,49,2,418,422],"App.js");
+
+  var _default = App;
+  exports.default = _default;
+},416,[1,417,12,22,23,30,33,36,49,2,418,422,423],"App.js");
 __d(function (global, _$$_REQUIRE, _$$_IMPORT_DEFAULT, _$$_IMPORT_ALL, module, exports, _dependencyMap) {
   function _interopRequireWildcard(obj) {
     if (obj && obj.__esModule) {
@@ -89974,11 +90424,23 @@ __d(function (global, _$$_REQUIRE, _$$_IMPORT_DEFAULT, _$$_IMPORT_ALL, module, e
   var _default = SimpleToast;
   exports.default = _default;
 },422,[2],"node_modules\\react-native-simple-toast\\index.js");
+__d(function (global, _$$_REQUIRE, _$$_IMPORT_DEFAULT, _$$_IMPORT_ALL, module, exports, _dependencyMap) {
+  module.exports = _$$_REQUIRE(_dependencyMap[0], "C:\\work\\bl\\node_modules\\react-native\\Libraries\\Image\\AssetRegistry").registerAsset({
+    "__packager_asset": true,
+    "httpServerLocation": "/assets/src/images",
+    "width": 96,
+    "height": 96,
+    "scales": [1],
+    "hash": "f5b6e24f78fc4e8d473051944195b932",
+    "name": "ic_done_black_24dp",
+    "type": "png"
+  });
+},423,[192],"src\\images\\ic_done_black_24dp.png");
 __d(function(global, require, _aUnused, _bUnused, module, exports, _cUnused) {
   module.exports = {
   "name": "bl",
   "displayName": "bl"
 };
-},423,[],"app.json");
+},424,[],"app.json");
 __r(86);
 __r(0);
