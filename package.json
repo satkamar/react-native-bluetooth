@@ -1,0 +1,27 @@
+{
+  "name": "bl",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "android": "react-native bundle --platform android --dev true --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res",
+    "dev": "react-native run-android --port 8088"
+  },
+  "dependencies": {
+    "react": "16.8.3",
+    "react-native": "0.59.4",
+    "react-native-bluetooth-serial": "^1.0.0-rc1",
+    "react-native-simple-toast": "0.0.8"
+  },
+  "devDependencies": {
+    "@babel/core": "7.4.3",
+    "@babel/runtime": "7.4.3",
+    "babel-jest": "24.7.1",
+    "jest": "24.7.1",
+    "metro-react-native-babel-preset": "0.53.1",
+    "react-test-renderer": "16.8.3"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
